@@ -653,8 +653,8 @@ theorem PrimeDivisibilityYIf
     (α β : (O_K_mod_p)ˣ)
     (hroot1 : (α : O_K_mod_p) ^ 2 - (k : O_K_mod_p) * (α : O_K_mod_p) + 1 = 0)
     (hroot2 : (β : O_K_mod_p) ^ 2 - (k : O_K_mod_p) * (β : O_K_mod_p) + 1 = 0)
-    (hnzero : α ≠ β)
-    (hodd : Odd (orderOf α)) :
+    (hodd : Odd (orderOf α))
+    (not_minus_2 : (k : ZMod p) ≠ -2) :
     ∃ n : ℕ, n > 0 ∧ (p : ℤ) ∣ KacMoodyY (n, k) := by
          by_cases zero : ((k^2 - 4 : ℤ) : ZMod p) = 0
          · have h_sq : (k : ZMod p)^2 = (2 : ZMod p)^2 := by
@@ -699,62 +699,14 @@ theorem PrimeDivisibilityYIf
                rw [ZMod.natCast_self p]
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-           · have alt_arithmetic_seq : ∀ m : ℕ, (KacMoodyY (m, k) : ZMod p) = (m+1 : ZMod p) * (-1 : ZMod p)^(m) := by
-              intro m
-              induction m using Nat.strong_induction_on
-              next m ih =>
-              rcases m with _ | _ | m
-              · push_cast
-                simp [KacMoodyY]
-              · simp [KacMoodyY]
-                
-
-              · have ih1 := ih m (by push_cast; omega)
-                have ih2 := ih (m + 1) (by push_cast; omega)
-                simp [KacMoodyY]
-                rw [ih1, ih2, kneg]
-                push_cast
-                ring
-             use p
-             constructor
-             · exact Nat.Prime.pos Fact.out
-             · rw [← ZMod.intCast_zmod_eq_zero_iff_dvd]
-               rw [alt_arithmetic_seq p]
-               simp
-
-
+           · exfalso
+             contradiction
 
 
 
 
 
          · simp_rw [X_to_Y]
-           have CharNotTwo : NeZero (2 : ZMod p) := by
-            by_contra two_is_zero
-            apply pod
-            have h2 : (2 : ZMod p) = 0 := by_contra (fun h => two_is_zero ⟨h⟩)
-            have div2 : p ∣ 2 := by
-              change ((2 : ℕ) : ZMod p) = 0 at h2
-              exact (ZMod.natCast_eq_zero_iff 2 p).mp h2
-            have hp_le : p ≤ 2 := Nat.le_of_dvd (by decide) div2
-            have hp_ge : 2 ≤ p := Nat.Prime.two_le Fact.out
-            omega
 
 
            have explicit := congr_fun (XExplicitFormulaGen k α β hroot1 hroot2)
