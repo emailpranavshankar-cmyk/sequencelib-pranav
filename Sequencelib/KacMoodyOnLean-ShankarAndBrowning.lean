@@ -729,7 +729,7 @@ theorem PrimeDivisibilityYIf
 
 
          · obtain ⟨ord, hord ⟩ := hodd
-           
+
 
 
 
