@@ -90,3 +90,13 @@ theorem Recaman_abs (n : ℕ) : abs ((Recaman (n + 1) : ℤ) - Recaman n) = n + 
   · push_cast
     simp
     linarith
+
+theorem all_recaman : ∀ n : ℕ, ∃ k : ℕ , Recaman k = n := by
+  intro n
+  induction n using Nat.strong_induction_on
+  next n ih =>
+    rcases n with _ | n
+    · use 0
+      unfold Recaman
+      rfl
+    · 

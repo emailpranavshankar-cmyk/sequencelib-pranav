@@ -1,8 +1,6 @@
 import Mathlib
 import Mathlib.Algebra.LinearRecurrence
 import Mathlib.Data.Complex.Basic
-import Sequencelib.Meta
-namespace Sequence
 open Int
 open Polynomial
 open scoped NumberField
@@ -729,7 +727,7 @@ theorem PrimeDivisibilityYIf
 
 
          · obtain ⟨ord, hord ⟩ := hodd
-           
+
 
 
 
