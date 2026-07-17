@@ -99,4 +99,5 @@ theorem all_recaman : ∀ n : ℕ, ∃ k : ℕ , Recaman k = n := by
     · use 0
       unfold Recaman
       rfl
-    · 
+    · sorry
+theorem crazy_eights : ¬ (∃ n : ℕ, Recaman n = 852655) := by sorry

@@ -808,7 +808,7 @@ theorem PrimeDivisibilityY
   have old_hroot1 := old_hroot1_lemma k p K pod α β hdiff κ hκ hroot1 hroot2
   have old_hroot2 := old_hroot2_lemma k p K pod α β hdiff κ hκ hroot1 hroot2
   have alphabet_inverse_jumbo := alphabet_inverse_jumbo_lemma k p K pod α β hdiff κ hκ hroot1 hroot2
-  by_cases zero : ((k^2 - 4 : ℤ) : ZMod p) = 0 -- this case is impossible because k can't be 2 or -2 mod p
+  by_cases zero : ((k^2 - 4 : ℤ) : ZMod p) = 0 -- k^2 - 4 = 0 mod p is impossible because k can't be 2 or -2 mod p
   · have h_sq : (k : ZMod p)^2 = (2 : ZMod p)^2 := by
       calc (k : ZMod p)^2
       _ = ((k^2 - 4 : ℤ) : ZMod p) + (4 : ZMod p) := by push_cast; ring
@@ -860,8 +860,9 @@ theorem PrimeDivisibilityY
         specialize cast_from_ring_of_ints hk_residue
         have rearrangement : ((k^2 - 4 : ℤ) : ZMod p) = (k : ZMod p)^2 - (4 : ZMod p) := by push_cast; ring
         rw[rearrangement, cast_from_ring_of_ints] at zero
-        norm_num at zero
-      · suffices h : ((α : O_K_mod_p) - (β : O_K_mod_p)) * (KacMoodyY (ord, k) : O_K_mod_p) = 0 by -- Main branch of first case: proving p divides Y(ord)
+        norm_num at zero -- thus ord = 0 contradicts the fact that k^2 -4  is nonzero mod p
+        -- Main branch of first case: proving p divides Y(ord)
+      · suffices h : ((α : O_K_mod_p) - (β : O_K_mod_p)) * (KacMoodyY (ord, k) : O_K_mod_p) = 0 by -- we only need to prove (alpha - beta) * Y(ord) = 0 in O_K_mod_p
           by_contra p_div_y
           have py_coprime : IsCoprime (p : ℤ) (KacMoodyY (ord, k)) := by
             rw [← Prime.coprime_iff_not_dvd] at p_div_y
@@ -886,16 +887,16 @@ theorem PrimeDivisibilityY
           apply hdiff
           have eq_in_non_mult: (α : O_K_mod_p) = (β : O_K_mod_p) := by linear_combination hn
           exact Units.val_inj.mp eq_in_non_mult
-        have explicit := YExplicitFormulaRingSafe k (α : O_K_mod_p) (β : O_K_mod_p) old_hroot1 old_hroot2 ord
+        have explicit := YExplicitFormulaRingSafe k (α : O_K_mod_p) (β : O_K_mod_p) old_hroot1 old_hroot2 ord -- now let's prove (alpha - beta) * Y(ord) = 0 in O_K_mod_p
         rw[explicit, alphabet_inverse_jumbo]
-        have hpow : α ^ (2 * ord + 1) = 1 := by
+        have hpow : α ^ (2 * ord + 1) = 1 := by -- unfolding order
           have ord_self := pow_orderOf_eq_one α
           rwa [hord] at ord_self
-        have hpow_cast : (α : O_K_mod_p) ^ (2 * ord + 1) = 1 := by
+        have hpow_cast : (α : O_K_mod_p) ^ (2 * ord + 1) = 1 := by -- casting hpow into O_K_mod_p
           have h := congrArg (Units.val) hpow
           simp only [Units.val_pow_eq_pow_val, Units.val_one] at h
           exact h
-        have ord_eqn: (α : O_K_mod_p)^ (2 * ord + 1) * ((α : O_K_mod_p) + 1) - (α : O_K_mod_p) * (α⁻¹ + 1) = 0 := by
+        have ord_eqn: (α : O_K_mod_p)^ (2 * ord + 1) * ((α : O_K_mod_p) + 1) - (α : O_K_mod_p) * (α⁻¹ + 1) = 0 := by --basically multiplying the main theorem by alpha ^ (n+1)
           rw[hpow_cast]
           ring_nf
           rw [← Units.val_mul, mul_inv_cancel, Units.val_one]
@@ -912,12 +913,14 @@ theorem PrimeDivisibilityY
         push_cast
         push_cast at ord_eqn_lite
         linear_combination ord_eqn_lite
+    -- second case: now prove that prime divisibility implies odd order
     · intro p_divides
       obtain ⟨n, divides_y⟩ := p_divides
       have explicit_second := YExplicitFormulaRingSafe k (α : O_K_mod_p) (β : O_K_mod_p) old_hroot1 old_hroot2 n
       have div_left:= divides_y.left
       have div_right:= divides_y.right
       push_cast
+      -- putting the multiplier into the prime divisibility so that explicit formula could be used
       have div_middle : ((α : O_K_mod_p) -(β : O_K_mod_p)) * (p : O_K_mod_p) ∣  ((α : O_K_mod_p) -(β : O_K_mod_p)) * (KacMoodyY (n,k) : O_K_mod_p) := by
         refine mul_dvd_mul ?_ ?_
         exact dvd_rfl
@@ -926,6 +929,7 @@ theorem PrimeDivisibilityY
         push_cast
         exact dvd_mul_right _ _
       rw [explicit_second, alphabet_inverse_jumbo] at div_middle
+      -- factoring out the dividend
       have middle_factored : ((α : O_K_mod_p) -(↑α⁻¹ : O_K_mod_p)) * (p : O_K_mod_p) ∣ (↑α⁻¹ : O_K_mod_p) ^ (n+1) * ((α: O_K_mod_p) + 1) * ((α: O_K_mod_p)^ (2* n + 1) - 1) := by
         have alpha_inverse: (α : O_K_mod_p) * (↑α⁻¹ : O_K_mod_p) = 1 := by exact_mod_cast Units.mul_inv α
         have h_pos : (↑α⁻¹ : O_K_mod_p) ^ (n+1) * (↑α)^(2*n+1) = (↑α)^n := by
@@ -943,6 +947,7 @@ theorem PrimeDivisibilityY
         exact div_middle
       rw [hp_zero] at middle_factored
       simp at middle_factored
+      -- we have a product of three elements being zero. we show the first two are units and cancel them to show the last one is zero
       have unit_cancel_one: ((α : O_K_mod_p) + 1) * ((α: O_K_mod_p)^(2*n+1) - 1) = 0 := by
         have alpha_pow_unit : IsUnit ((↑α⁻¹ : O_K_mod_p) ^ (n + 1)) := by
            rw [← Units.val_pow_eq_pow_val]
@@ -951,6 +956,7 @@ theorem PrimeDivisibilityY
       (↑α⁻¹ : O_K_mod_p) ^ (n + 1) * (((α : O_K_mod_p) + 1) * ((α : O_K_mod_p) ^ (2 * n + 1) - 1)) = 0 := by
           rw [← mul_assoc]; exact middle_factored
         exact alpha_pow_unit.mul_right_eq_zero.mp middle_factored_arr
+      -- Finale : putting order back in
       have alpha_order : (α: O_K_mod_p)^(2*n+1) -1 = 0 := by
         have alpha_plus_one_unit := alpha_plus_one_unit_lemma k p K pod not_two not_minus_2 α β hdiff κ hκ hroot1 hroot2
         exact alpha_plus_one_unit.mul_right_eq_zero.mp unit_cancel_one
