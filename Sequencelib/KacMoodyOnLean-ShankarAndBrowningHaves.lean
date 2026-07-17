@@ -672,125 +672,6 @@ local notation "I_p" => Ideal.span {(p : 𝓞 K)}
 local notation "O_K_mod_p" => (𝓞 K) ⧸ I_p
 
 
-lemma hp_zero : (p : O_K_mod_p) = 0 := by
-  change Ideal.Quotient.mk I_p (p : 𝓞 K) = 0
-  rw [Ideal.Quotient.eq_zero_iff_mem]
-  exact Ideal.mem_span_singleton_self _
-lemma two_unit_lemma  (pod : p ≠ 2) : IsUnit (2 : O_K_mod_p) := by
-  have two_coprime : Nat.Coprime 2 p := by
-    rw [Nat.coprime_two_left]
-    exact (Fact.out : Nat.Prime p).odd_of_ne_two pod
-  have two_coprime_ints : IsCoprime (2 : ℤ) (p : ℤ) :=  Nat.isCoprime_iff_coprime.mpr two_coprime
-  obtain ⟨u, v, bezouvt⟩ := two_coprime_ints
-  have bezouvt_ring_ints : (u : 𝓞 K) * 2 + (v : 𝓞 K) * (p : 𝓞 K) = 1 := by exact_mod_cast bezouvt
-  have bezouvt_quot : (u : O_K_mod_p) * 2 + (v : O_K_mod_p) * (p : O_K_mod_p) = 1 := by
-    have := congrArg (Ideal.Quotient.mk I_p) bezouvt_ring_ints
-    push_cast at this ⊢
-    simpa using this
-  rw [hp_zero] at bezouvt_quot
-  ring_nf at bezouvt_quot
-  unfold IsUnit
-  exact IsUnit.of_mul_eq_one_right u bezouvt_quot
-lemma four_unit_lemma (pod : p ≠ 2): IsUnit (4 : O_K_mod_p) := by
-  have two_unit:= two_unit_lemma p K pod
-  unfold IsUnit
-  unfold IsUnit at two_unit
-  obtain ⟨inv, why_inv⟩ := two_unit
-  use inv^2
-  rw [Units.val_pow_eq_pow_val, why_inv]
-  ring
-lemma old_hroot1_lemma (pod : p ≠ 2) (α β : (O_K_mod_p)ˣ) (hdiff : α ≠ β)
-    (κ : O_K_mod_p) (hκ : κ^2 = (k:O_K_mod_p)^2 - 4)
-    (hroot1 : 2 * (α : O_K_mod_p) = (k : O_K_mod_p) + κ)
-    (hroot2: 2 * (β : O_K_mod_p) = (k : O_K_mod_p) - κ) : (α : O_K_mod_p) ^ 2 - (k : O_K_mod_p) * (α : O_K_mod_p) + 1 = 0 := by
-  have multed : (2 * (α : O_K_mod_p))^2 - 2 * (k : O_K_mod_p) * (2 * (α : O_K_mod_p)) + 4 = 0 := by
-    simp only [hroot1]
-    ring_nf
-    linear_combination hκ
-  have multiplier : 4 * ((α : O_K_mod_p) ^ 2 - (k : O_K_mod_p) * (α  : O_K_mod_p) + 1) = 0 := by linear_combination multed
-  have four_unit := four_unit_lemma p K pod
-  exact four_unit.mul_right_eq_zero.mp multiplier
-#check old_hroot1_lemma
-lemma old_hroot2_lemma (pod : p ≠ 2)  (α β : (O_K_mod_p)ˣ) (hdiff : α ≠ β)
-    (κ : O_K_mod_p) (hκ : κ^2 = (k:O_K_mod_p)^2 - 4)
-    (hroot1 : 2 * (α : O_K_mod_p) = (k : O_K_mod_p) + κ)
-    (hroot2: 2 * (β : O_K_mod_p) = (k : O_K_mod_p) - κ) : (β : O_K_mod_p) ^ 2 - (k : O_K_mod_p) * (β  : O_K_mod_p) + 1 = 0 := by
-  have multed : (2 * (β  : O_K_mod_p))^2 - 2 * (k : O_K_mod_p) * (2 * (β  : O_K_mod_p)) + 4 = 0 := by
-    simp only [hroot2]
-    ring_nf
-    linear_combination hκ
-  have multiplier : 4 * ((β  : O_K_mod_p) ^ 2 - (k : O_K_mod_p) * (β  : O_K_mod_p) + 1) = 0 := by linear_combination multed
-  have four_unit := four_unit_lemma p K pod
-  exact four_unit.mul_right_eq_zero.mp multiplier
-lemma alphabet_inverse_lemma  (pod : p ≠ 2) (α β : (O_K_mod_p)ˣ) (hdiff : α ≠ β)
-    (κ : O_K_mod_p) (hκ : κ^2 = (k:O_K_mod_p)^2 - 4)
-    (hroot1 : 2 * (α : O_K_mod_p) = (k : O_K_mod_p) + κ)
-    (hroot2: 2 * (β : O_K_mod_p) = (k : O_K_mod_p) - κ): (α : O_K_mod_p)  * (β : O_K_mod_p)  = 1 := by
-  have multed : ((2 : O_K_mod_p) * α) * ((2 : O_K_mod_p) * β) = (4 : O_K_mod_p) := by
-    rw [hroot1, hroot2]
-    ring_nf
-    linear_combination -hκ
-  have multiplier: (4 : O_K_mod_p) * α * β = (4 : O_K_mod_p) := by linear_combination multed
-  have multiplier_two : (4 : O_K_mod_p) * (α * β - 1) = 0 := by linear_combination multiplier
-  have four_unit := four_unit_lemma p K pod
-  have multiplier_three := four_unit.mul_right_eq_zero.mp multiplier_two
-  linear_combination multiplier_three
-lemma alphabet_sum_lemma  (pod : p ≠ 2) (α β : (O_K_mod_p)ˣ) (hdiff : α ≠ β)
-    (κ : O_K_mod_p) (hκ : κ^2 = (k:O_K_mod_p)^2 - 4)
-    (hroot1 : 2 * (α : O_K_mod_p) = (k : O_K_mod_p) + κ)
-    (hroot2: 2 * (β : O_K_mod_p) = (k : O_K_mod_p) - κ): (α : O_K_mod_p) + (β : O_K_mod_p)  = k := by
-  have multed : ((2 : O_K_mod_p) * α) + ((2 : O_K_mod_p) * β) = (2 * k : O_K_mod_p) := by
-    rw [hroot1, hroot2]
-    ring_nf
-  have multiplier : 2 * ((α : O_K_mod_p) + (β : O_K_mod_p)) = 2 * k := by linear_combination multed
-  have two_unit:= two_unit_lemma p K pod
-  exact two_unit.mul_left_cancel multiplier
-lemma alphabet_inverse_jumbo_lemma (pod : p ≠ 2) (α β : (O_K_mod_p)ˣ) (hdiff : α ≠ β)
-    (κ : O_K_mod_p) (hκ : κ^2 = (k:O_K_mod_p)^2 - 4)
-    (hroot1 : 2 * (α : O_K_mod_p) = (k : O_K_mod_p) + κ)
-    (hroot2 : 2 * (β : O_K_mod_p) = (k : O_K_mod_p) - κ) : β = α⁻¹ :=
-  eq_inv_of_mul_eq_one_right
-    (Units.ext (by
-      push_cast
-      exact alphabet_inverse_lemma k p K pod α β hdiff κ hκ hroot1 hroot2))
-lemma k_plus_two_unit_lemma (pod : p ≠ 2) (not_two : (k : ZMod p) ≠ 2)
-    (not_minus_2 : (k : ZMod p) ≠ -2)  (α β : (O_K_mod_p)ˣ) (hdiff : α ≠ β)
-    (κ : O_K_mod_p) (hκ : κ^2 = (k:O_K_mod_p)^2 - 4)
-    (hroot1 : 2 * (α : O_K_mod_p) = (k : O_K_mod_p) + κ)
-    (hroot2: 2 * (β : O_K_mod_p) = (k : O_K_mod_p) - κ) : IsUnit (k+2 : O_K_mod_p) := by
-  have k_plus_two_coprime : IsCoprime (k+2) p := by
-    have p_not_div : ¬ ((p : ℤ) ∣ (k+2)) := by
-      rw [← ZMod.intCast_zmod_eq_zero_iff_dvd]
-      intro kplus
-      simp at kplus
-      apply not_minus_2
-      linear_combination kplus
-    have hprime : Prime (p : ℤ) := Nat.prime_iff_prime_int.mp Fact.out
-    exact ((hprime.coprime_iff_not_dvd).mpr p_not_div).symm
-  have ⟨m, n, bezoukt⟩ := k_plus_two_coprime
-  have bezoukt_ring_ints : (m : 𝓞 K) * (k+2) + (n : 𝓞 K) * (p : 𝓞 K) = 1 := by exact_mod_cast bezoukt
-  have bezoukt_quot : (m : O_K_mod_p) * (k+2) + (n : O_K_mod_p) * (p : O_K_mod_p) = 1 := by
-    have := congrArg (Ideal.Quotient.mk I_p) bezoukt_ring_ints
-    push_cast at this ⊢
-    simpa using this
-  rw [hp_zero] at bezoukt_quot
-  ring_nf at bezoukt_quot
-  have bezoukt_combo: (k+2 : O_K_mod_p) * m = 1  := by linear_combination bezoukt_quot
-  exact IsUnit.of_mul_eq_one m bezoukt_combo
-lemma alpha_plus_one_unit_lemma (pod : p ≠ 2) (not_two : (k : ZMod p) ≠ 2)
-    (not_minus_2 : (k : ZMod p) ≠ -2)  (α β : (O_K_mod_p)ˣ) (hdiff : α ≠ β)
-    (κ : O_K_mod_p) (hκ : κ^2 = (k:O_K_mod_p)^2 - 4)
-    (hroot1 : 2 * (α : O_K_mod_p) = (k : O_K_mod_p) + κ)
-    (hroot2: 2 * (β : O_K_mod_p) = (k : O_K_mod_p) - κ) : IsUnit (α + 1 : O_K_mod_p) := by
-  have alphabet_product : ((α : O_K_mod_p) + 1) * ((β : O_K_mod_p) + 1) = ((k : O_K_mod_p) + 2) := by
-    have alphabet_inv := alphabet_inverse_lemma k p K pod α β hdiff κ hκ hroot1 hroot2
-    have alphabet_sum := alphabet_sum_lemma k p K pod α β hdiff κ hκ hroot1 hroot2
-    linear_combination alphabet_inv + alphabet_sum
-  have k_plus_two_unit := k_plus_two_unit_lemma k p K pod not_two not_minus_2 α β hdiff κ hκ hroot1 hroot2
-  rw [← alphabet_product] at k_plus_two_unit
-  exact (isUnit_of_mul_isUnit_left k_plus_two_unit)
-
-
 set_option synthInstance.maxHeartbeats 0 in
 set_option maxHeartbeats 0 in
 theorem PrimeDivisibilityY
@@ -803,22 +684,74 @@ theorem PrimeDivisibilityY
     (not_two : (k : ZMod p) ≠ 2)
     (not_minus_2 : (k : ZMod p) ≠ -2) :
     ( Odd (orderOf α)) ↔ (∃ n : ℕ, n > 0 ∧ (p : ℤ) ∣ KacMoodyY (n, k)) := by
-  have old_hroot1 := old_hroot1_lemma k p K pod α β hdiff κ hκ hroot1 hroot2
-  have old_hroot2 := old_hroot2_lemma k p K pod α β hdiff κ hκ hroot1 hroot2
-  have alphabet_inverse_jumbo := alphabet_inverse_jumbo_lemma k p K pod α β hdiff κ hκ hroot1 hroot2
   by_cases zero : ((k^2 - 4 : ℤ) : ZMod p) = 0
   · have h_sq : (k : ZMod p)^2 = (2 : ZMod p)^2 := by
       calc (k : ZMod p)^2
       _ = ((k^2 - 4 : ℤ) : ZMod p) + (4 : ZMod p) := by push_cast; ring
       _ = 0 + (4 : ZMod p) := by rw [zero]
       _ = (2 : ZMod p)^2 := by ring
+
+
     have pm_two_mod_p : (k: ZMod p) = 2 ∨ (k : ZMod p) = -2 := sq_eq_sq_iff_eq_or_eq_neg.mp h_sq
     rcases pm_two_mod_p with kpos | kneg
     · exfalso
       contradiction
+
+
     · exfalso
       contradiction
-  · constructor
+
+  · have hp_zero : (p : O_K_mod_p) = 0 := by
+        change Ideal.Quotient.mk I_p (p : 𝓞 K) = 0
+        rw [Ideal.Quotient.eq_zero_iff_mem]
+        exact Ideal.mem_span_singleton_self _
+    have two_unit : IsUnit (2 : O_K_mod_p) := by
+      have two_coprime : Nat.Coprime 2 p := by
+        rw [Nat.coprime_two_left]
+        exact (Fact.out : Nat.Prime p).odd_of_ne_two pod
+      have two_coprime_ints : IsCoprime (2 : ℤ) (p : ℤ) :=  Nat.isCoprime_iff_coprime.mpr two_coprime
+      obtain ⟨u, v, bezouvt⟩ := two_coprime_ints
+      have bezouvt_ring_ints : (u : 𝓞 K) * 2 + (v : 𝓞 K) * (p : 𝓞 K) = 1 := by exact_mod_cast bezouvt
+      have bezouvt_quot : (u : O_K_mod_p) * 2 + (v : O_K_mod_p) * (p : O_K_mod_p) = 1 := by
+        have := congrArg (Ideal.Quotient.mk I_p) bezouvt_ring_ints
+        push_cast at this ⊢
+        simpa using this
+      rw [hp_zero] at bezouvt_quot
+      ring_nf at bezouvt_quot
+      unfold IsUnit
+      exact IsUnit.of_mul_eq_one_right u bezouvt_quot
+    have four_unit : IsUnit (4 : O_K_mod_p) := by
+      unfold IsUnit
+      unfold IsUnit at two_unit
+      obtain ⟨inv, why_inv⟩ := two_unit
+      use inv^2
+      rw [Units.val_pow_eq_pow_val, why_inv]
+      ring
+    have old_hroot1 : (α : O_K_mod_p) ^ 2 - (k : O_K_mod_p) * (α : O_K_mod_p) + 1 = 0 := by
+      have multed : (2 * (α : O_K_mod_p))^2 - 2 * (k : O_K_mod_p) * (2 * (α : O_K_mod_p)) + 4 = 0 := by
+       simp only [hroot1]
+       ring_nf
+       linear_combination hκ
+      have multiplier : 4 * ((α : O_K_mod_p) ^ 2 - (k : O_K_mod_p) * (α  : O_K_mod_p) + 1) = 0 := by linear_combination multed
+      exact four_unit.mul_right_eq_zero.mp multiplier
+    have old_hroot2 : (β : O_K_mod_p) ^ 2 - (k : O_K_mod_p) * (β  : O_K_mod_p) + 1 = 0 := by
+      have multed : (2 * (β  : O_K_mod_p))^2 - 2 * (k : O_K_mod_p) * (2 * (β  : O_K_mod_p)) + 4 = 0 := by
+        simp only [hroot2]
+        ring_nf
+        linear_combination hκ
+      have multiplier : 4 * ((β  : O_K_mod_p) ^ 2 - (k : O_K_mod_p) * (β  : O_K_mod_p) + 1) = 0 := by linear_combination multed
+      exact four_unit.mul_right_eq_zero.mp multiplier
+    have alphabet_inverse: (α : O_K_mod_p)  * (β : O_K_mod_p)  = 1 := by
+      have multed : ((2 : O_K_mod_p) * α) * ((2 : O_K_mod_p) * β) = (4 : O_K_mod_p) := by
+        rw [hroot1, hroot2]
+        ring_nf
+        linear_combination -hκ
+      have multiplier: (4 : O_K_mod_p) * α * β = (4 : O_K_mod_p) := by linear_combination multed
+      have multiplier_two : (4 : O_K_mod_p) * (α * β - 1) = 0 := by linear_combination multiplier
+      have multiplier_three := four_unit.mul_right_eq_zero.mp multiplier_two
+      linear_combination multiplier_three
+    have alphabet_inverse_jumbo : β = α⁻¹ := eq_inv_of_mul_eq_one_right (Units.ext alphabet_inverse)
+    constructor
     · intro hodd
       obtain ⟨ord, hord⟩ := hodd
       use ord
@@ -910,6 +843,13 @@ theorem PrimeDivisibilityY
         push_cast
         push_cast at ord_eqn_lite
         linear_combination ord_eqn_lite
+
+
+
+
+
+
+
     · intro p_divides
       obtain ⟨n, divides_y⟩ := p_divides
       have explicit_second := YExplicitFormulaRingSafe k (α : O_K_mod_p) (β : O_K_mod_p) old_hroot1 old_hroot2 n
@@ -931,31 +871,15 @@ theorem PrimeDivisibilityY
           norm_cast
           group
         have little_eq : (↑α⁻¹ : O_K_mod_p) ^ (n+1) * ((α : O_K_mod_p) + 1) * ((↑α)^(2*n+1) - 1)
-          = ((α : O_K_mod_p) + 1) * ((↑α⁻¹ : O_K_mod_p) ^ (n+1) * (↑α)^(2*n+1))
+    = ((α : O_K_mod_p) + 1) * ((↑α⁻¹ : O_K_mod_p) ^ (n+1) * (↑α)^(2*n+1))
       - ((α : O_K_mod_p) + 1) * (↑α⁻¹ : O_K_mod_p) ^ (n+1) := by ring
         rw [h_pos] at little_eq
         rw [little_eq]
         have middle_match : (↑α : O_K_mod_p) ^ n * (↑α + 1) - (↑α⁻¹ : O_K_mod_p) ^ n * (↑α⁻¹ + 1)
-          = (↑α + 1) * ↑α ^ n - (↑α + 1) * ↑α⁻¹ ^ (n + 1) := by linear_combination (↑α⁻¹ : O_K_mod_p) ^ n * alpha_inverse
+    = (↑α + 1) * ↑α ^ n - (↑α + 1) * ↑α⁻¹ ^ (n + 1) := by linear_combination (↑α⁻¹ : O_K_mod_p) ^ n * alpha_inverse
         rw [← middle_match]
         exact div_middle
       rw [hp_zero] at middle_factored
       simp at middle_factored
       have unit_cancel_one: ((α : O_K_mod_p) + 1) * ((α: O_K_mod_p)^(2*n+1) - 1) = 0 := by
-        have alpha_pow_unit : IsUnit ((↑α⁻¹ : O_K_mod_p) ^ (n + 1)) := by
-           rw [← Units.val_pow_eq_pow_val]
-           exact (α⁻¹ ^ (n + 1)).isUnit
-        have middle_factored_arr :
-      (↑α⁻¹ : O_K_mod_p) ^ (n + 1) * (((α : O_K_mod_p) + 1) * ((α : O_K_mod_p) ^ (2 * n + 1) - 1)) = 0 := by
-          rw [← mul_assoc]; exact middle_factored
-        exact alpha_pow_unit.mul_right_eq_zero.mp middle_factored_arr
-      have alpha_order : (α: O_K_mod_p)^(2*n+1) -1 = 0 := by
-        have alpha_plus_one_unit := alpha_plus_one_unit_lemma k p K pod not_two not_minus_2 α β hdiff κ hκ hroot1 hroot2
-        exact alpha_plus_one_unit.mul_right_eq_zero.mp unit_cancel_one
-      have alpha_order_arr : (α: O_K_mod_p)^(2*n+1) = 1 := by linear_combination alpha_order
-      have alpha_order_unit : α ^ (2 * n + 1) = 1 := by
-        apply Units.ext
-        exact alpha_order_arr
-      have order_div : orderOf α ∣ (2 * n + 1) := orderOf_dvd_of_pow_eq_one alpha_order_unit
-      have dividend_odd : Odd (2 * n + 1) := by exact odd_two_mul_add_one n
-      exact Odd.of_dvd_nat dividend_odd order_div
+        rw [Submonoid.coe_pow] at middle_factored
