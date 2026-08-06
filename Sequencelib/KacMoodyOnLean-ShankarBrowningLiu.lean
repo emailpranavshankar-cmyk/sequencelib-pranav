@@ -809,7 +809,7 @@ theorem PrimeDivisibilityY
   have old_hroot2 := old_hroot2_lemma k p K pod α β hdiff κ hκ hroot1 hroot2
   have alphabet_inverse_jumbo := alphabet_inverse_jumbo_lemma k p K pod α β hdiff κ hκ hroot1 hroot2
   by_cases zero : ((k^2 - 4 : ℤ) : ZMod p) = 0 -- k^2 - 4 = 0 mod p is impossible because k can't be 2 or -2 mod p
-  · have h_sq : (k : ZMod p)^2 = (2 : ZMod p)^2 := by
+  · have h_sq : (k : ZMod  p)^2 = (2 : ZMod p)^2 := by
       calc (k : ZMod p)^2
       _ = ((k^2 - 4 : ℤ) : ZMod p) + (4 : ZMod p) := by push_cast; ring
       _ = 0 + (4 : ZMod p) := by rw [zero]
@@ -967,3 +967,25 @@ theorem PrimeDivisibilityY
       have order_div : orderOf α ∣ (2 * n + 1) := orderOf_dvd_of_pow_eq_one alpha_order_unit
       have dividend_odd : Odd (2 * n + 1) := by exact odd_two_mul_add_one n
       exact Odd.of_dvd_nat dividend_odd order_div
+variable [Algebra (ZMod p) O_K_mod_p]
+
+variable [CharP O_K_mod_p p]
+
+#check @Algebra.norm
+-- 2. Define your norm map using your local notations
+noncomputable def f : (O_K_mod_p)ˣ →* (ZMod p)ˣ :=
+  Units.map (Algebra.norm (ZMod p))
+
+-- 3. Define your kernel using your map
+noncomputable def kappa_p : Subgroup (O_K_mod_p)ˣ :=
+  MonoidHom.ker f
+
+
+theorem power_condition
+    (r : ℕ)
+    (h1 : 0 < k)
+    (pod : p ≠ 2)
+    (α β : (O_K_mod_p)ˣ) (hdiff : α ≠ β)
+    (v2 : r =
+    padicValNat 2 (Nat.card kappa_p)) :
+    (Odd (orderOf α)) ↔ (∃ t : (O_K_mod_p)ˣ, t ^ (2 ^ r) = α) := by
