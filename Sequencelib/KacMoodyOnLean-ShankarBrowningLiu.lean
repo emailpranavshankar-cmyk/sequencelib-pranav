@@ -967,9 +967,9 @@ theorem PrimeDivisibilityY
       have order_div : orderOf α ∣ (2 * n + 1) := orderOf_dvd_of_pow_eq_one alpha_order_unit
       have dividend_odd : Odd (2 * n + 1) := by exact odd_two_mul_add_one n
       exact Odd.of_dvd_nat dividend_odd order_div
-variable [Algebra (ZMod p) O_K_mod_p]
+variable [Algebra (ZMod p) ((𝓞 K) ⧸ Ideal.span {(p : 𝓞 K)})]
 
-variable [CharP O_K_mod_p p]
+variable [CharP ((𝓞 K) ⧸ Ideal.span {(p : 𝓞 K)}) p]
 
 #check @Algebra.norm
 -- 2. Define your norm map using your local notations
@@ -978,7 +978,122 @@ noncomputable def f : (O_K_mod_p)ˣ →* (ZMod p)ˣ :=
 
 -- 3. Define your kernel using your map
 noncomputable def kappa_p : Subgroup (O_K_mod_p)ˣ :=
-  MonoidHom.ker f
+  MonoidHom.ker (f p K)
+
+set_option synthInstance.maxHeartbeats 0 in
+set_option maxHeartbeats 0 in
+lemma alpha_alpha_kappa (pod : p ≠ 2) (α β : (O_K_mod_p)ˣ) (hdiff : α ≠ β)
+    (nontriv: NeZero 1)
+    (κ : O_K_mod_p) (hκ : κ^2 = (k : O_K_mod_p)^2 - 4)
+    (hroot1 : 2 * (α : O_K_mod_p) = (k : O_K_mod_p) + κ)
+    (hroot2 : 2 * (β : O_K_mod_p) = (k : O_K_mod_p) - κ)
+    (alpha_nonscalar : (α : O_K_mod_p) ∉ Set.range (algebraMap (ZMod p) (𝓞 K ⧸ Ideal.span {(p:𝓞 K)}))) :
+    α ∈ kappa_p p K := by
+         unfold kappa_p
+         show (f p K) α = 1
+         unfold f
+         have old_hroot1 := old_hroot1_lemma k p K pod α β hdiff κ hκ hroot1 hroot2
+         have basis_former : LinearIndependent (ZMod p) ![(1 : O_K_mod_p), (α : O_K_mod_p)] := by
+           rw [LinearIndependent.pair_iff]
+           intro s t hst
+           have snull : s = 0 := by
+             by_contra
+             apply alpha_nonscalar
+             have no_cancel: t ≠ 0 := by
+                by_contra cancel
+                rw [cancel] at hst
+                simp at hst
+                rcases hst with left | right
+                · contradiction
+                · haveI : Nontrivial (𝓞 K ⧸ Ideal.span {(p:𝓞 K)}) := by
+                    have hprime : Fact (Nat.Prime p) := inferInstance
+                    exact CharP.nontrivial_of_char_ne_one hprime.out.one_lt.ne'
+                  exact one_ne_zero right
+             use -s/t
+             have ha_eq : (t : ZMod p) • (α : O_K_mod_p) = (-s) • (1 : O_K_mod_p) := by
+                simp [hst]
+                linear_combination hst
+             have ha : (α : O_K_mod_p) = algebraMap (ZMod p) O_K_mod_p (-s / t) := by
+                have ht_unit : IsUnit t := Ne.isUnit no_cancel
+                have hinv : algebraMap (ZMod p) O_K_mod_p t⁻¹ * algebraMap (ZMod p) O_K_mod_p t = 1 := by rw [← map_mul, inv_mul_cancel₀ no_cancel, map_one]
+                rw [Algebra.smul_def] at ha_eq
+                simp only [Algebra.smul_def] at ha_eq
+                simp at ha_eq
+                rw [div_eq_mul_inv, map_mul, map_neg]
+                linear_combination (algebraMap (ZMod p) O_K_mod_p t⁻¹) * ha_eq - (α : O_K_mod_p) * hinv
+             rw[ha]
+           have tnull : t = 0 := by
+             rw [snull] at hst; simp at hst
+             rcases hst with left | right
+             · exact left
+             · exfalso
+               rw [right] at old_hroot1
+               simp at old_hroot1
+               haveI : Nontrivial (𝓞 K ⧸ Ideal.span {(p:𝓞 K)}) := by
+                    have hprime : Fact (Nat.Prime p) := inferInstance
+                    exact CharP.nontrivial_of_char_ne_one hprime.out.one_lt.ne'
+               exact one_ne_zero old_hroot1
+           constructor
+           · exact snull
+           · exact tnull
+         have spans : Submodule.span (ZMod p) ({(1 : O_K_mod_p), (α : O_K_mod_p)} : Set O_K_mod_p) = ⊤ := by
+           obtain ⟨w, hw_lift⟩ : ∃ w : 𝓞 K, Ideal.Quotient.mk (Ideal.span {(p : 𝓞 K)}) w = (α : O_K_mod_p) := sorry
+           have hw_root : w ^ 2 - (k : 𝓞 K) * w + 1 = 0 := sorry
+           have field_up : K = Algebra.adjoin ℚ ({(w : K)} : Set K) := by sorry
+           have ring_int : 𝓞 K = Algebra.adjoin ℤ ({w} : Set (𝓞 K)) := by sorry
+         sorry
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+lemma kappa_cyclic (r : ℕ)
+    (h1 : 0 < k)
+    (pod : p ≠ 2)
+    (α β : (O_K_mod_p)ˣ) (hdiff : α ≠ β)
+    (v2 : r =
+    padicValNat 2 (Nat.card (kappa_p p K))) : IsCyclic (kappa_p p K) := by
+      by_cases hprime : (I_p).IsPrime
+      · have p_nonzero : Ideal.span {(p : 𝓞 K)} ≠ ⊥ := by
+            rw [Submodule.ne_bot_iff]
+            use p
+            constructor
+            · exact Ideal.mem_span_singleton_self (p : 𝓞 K)
+            · exact Nat.cast_ne_zero.mpr (Fact.out : Nat.Prime p).ne_zero
+        have OkField : IsField (O_K_mod_p) := by
+          have dedekind : IsDedekindDomain ( 𝓞 K) := by exact NumberField.RingOfIntegers.instIsDedekindDomain K
+          have hmax : (I_p).IsMaximal := hprime.isMaximal p_nonzero
+          exact (Ideal.Quotient.maximal_ideal_iff_isField_quotient I_p).mp hmax
+        have OkFinite :  Finite (O_K_mod_p) := by exact Ideal.finiteQuotientOfFreeOfNeBot I_p p_nonzero
+        have OkCyclic: IsCyclic (O_K_mod_p)ˣ := by
+          apply isCyclic_of_subgroup_isDomain (Units.coeHom O_K_mod_p)
+          intro a1 a2 inj
+          exact Units.ext inj
+        exact subgroup_units_cyclic (kappa_p p K)
+      ·
+
+
+
+
+
 
 
 theorem power_condition
@@ -987,5 +1102,5 @@ theorem power_condition
     (pod : p ≠ 2)
     (α β : (O_K_mod_p)ˣ) (hdiff : α ≠ β)
     (v2 : r =
-    padicValNat 2 (Nat.card kappa_p)) :
+    padicValNat 2 (Nat.card (kappa_p p K))) :
     (Odd (orderOf α)) ↔ (∃ t : (O_K_mod_p)ˣ, t ^ (2 ^ r) = α) := by
